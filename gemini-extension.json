@@ -1,0 +1,6 @@
+{
+  "name": "teethmark",
+  "version": "0.2.0",
+  "description": "Proof that your tests did not get weaker. Re-plants the bugs your tests used to catch and blocks any change after which one slips through.",
+  "contextFileName": "AGENTS.md"
+}

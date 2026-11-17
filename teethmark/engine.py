@@ -36,6 +36,7 @@ DEFAULTS: Dict[str, Any] = {
     "min_new_kill_rate": 0.5,  # new/changed code below this -> REVIEW
     "workers": 0,              # 0 = min(4, cpu count)
     "timeout": 0,              # seconds per test run; 0 = 4x the clean run + 5s
+    "budget": 0,               # seconds to spend planting new bugs; 0 = no limit
     "runner": "auto",          # auto | pytest | unittest
     "python": "",              # interpreter that runs the tests
     "test_cmd": "",            # any shell command instead of pytest/unittest
@@ -213,6 +214,8 @@ class Engine:
         self.log = log or (lambda msg: None)
         venv = os.path.join(self.root, ".venv", "bin", "python")
         python = cfg["python"] or (venv if os.path.exists(venv) else sys.executable)
+        if os.sep in python:
+            python = os.path.abspath(python)  # tests run from a copy, so a relative path would break
         self.runner = detect(python, cfg["runner"], cfg["test_args"], cfg["test_cmd"])
         self.workers = int(cfg["workers"]) or min(4, os.cpu_count() or 2)
         self.project = scan(self.root, cfg["source"], cfg["exclude"])
@@ -317,13 +320,22 @@ class Engine:
         finally:
             ws.release(i)
 
-    def _run_all(self, ws: Workspace, jobs: List[Tuple[Mutant, Optional[str]]]) -> List[Tuple[str, Optional[str]]]:
+    def _run_all(self, ws: Workspace, jobs: List[Tuple[Mutant, Optional[str]]],
+                 skippable_from: int = 0) -> List[Tuple[str, Optional[str]]]:
+        """Run every job. Jobs from index ``skippable_from`` on are dropped (status
+        "skipped") once the time budget is spent; earlier jobs always run, because a
+        proof that was not re-checked is not a proof."""
         total = len(jobs)
         done = [0]
         lock = threading.Lock()
         step = max(1, total // 10)
+        budget = float(self.cfg.get("budget") or 0)
+        deadline = (time.time() + budget) if budget > 0 else None
+        index = {id(j): n for n, j in enumerate(jobs)}
 
         def one(job: Tuple[Mutant, Optional[str]]) -> Tuple[str, Optional[str]]:
+            if deadline is not None and index[id(job)] >= skippable_from and time.time() > deadline:
+                return "skipped", None
             result = self._evaluate(ws, job[0], job[1])
             with lock:
                 done[0] += 1
@@ -377,7 +389,11 @@ class Engine:
             with Workspace(self.root, self.workers) as ws:
                 self._baseline(ws)
                 for m, res in zip(todo, self._run_all(ws, [(m, None) for m in todo])):
-                    results[m.id] = res
+                    if res[0] != "skipped":
+                        results[m.id] = res
+        planned = len(mutants)
+        mutants = [m for m in mutants if m.id in results]
+        skipped = planned - len(mutants)
         body = self._header()
         units: Dict[str, Any] = {}
         for m in mutants:
@@ -391,11 +407,15 @@ class Engine:
         if len(mutants) >= 8 and killed == 0:
             warnings.append("No planted bug was caught at all. The tests are probably importing an "
                             "installed copy of the code instead of this folder (editable install?).")
-        if sum(len(g) for g in groups) > len(mutants):
+        if skipped:
+            warnings.append("Stopped after the %ds budget: %d of %d planned bugs were tried. Run `teethmark record` "
+                            "again to add the rest (finished results are reused)."
+                            % (int(self.cfg["budget"]), planned - skipped, planned))
+        elif sum(len(g) for g in groups) > planned:
             warnings.append("Sampling was capped at max_mutants=%d; raise it to cover more."
                             % int(self.cfg["max_mutants"]))
         return {"ledger": path, "units": len(units), "mutants": len(mutants), "killed": killed,
-                "survived": len(mutants) - killed, "reused": len(mutants) - len(todo),
+                "survived": len(mutants) - killed, "reused": len(mutants) - (len(todo) - skipped), "skipped": skipped,
                 "baseline_seconds": round(self.baseline_seconds, 2),
                 "seconds": round(time.time() - start, 2), "warnings": warnings}
 
@@ -474,7 +494,7 @@ class Engine:
             jobs += [(m, None) for m in fresh]
             with Workspace(self.root, self.workers) as ws:
                 self._baseline(ws)
-                results = self._run_all(ws, jobs)
+                results = self._run_all(ws, jobs, skippable_from=len(verify))
 
         lost: List[Dict[str, Any]] = []
         rehomed: List[Dict[str, Any]] = []
@@ -495,7 +515,11 @@ class Engine:
         new_entries: Dict[str, List[Dict[str, Any]]] = {}
         survivors: List[Dict[str, Any]] = []
         new_killed = 0
+        measured = 0
         for m, (status, killer) in zip(fresh, results[len(verify):]):
+            if status == "skipped":
+                continue
+            measured += 1
             new_entries.setdefault(m.unit_key, []).append(_entry(m, status, killer))
             if status == "killed":
                 new_killed += 1
@@ -503,7 +527,7 @@ class Engine:
                 item = m.describe()
                 item.update({"unit": m.unit_key, "path": m.path})
                 survivors.append(item)
-        rate = (new_killed / len(fresh)) if fresh else None
+        rate = (new_killed / measured) if measured else None
 
         # 3. what the test files themselves look like now
         notes: List[Dict[str, str]] = []
@@ -525,10 +549,10 @@ class Engine:
         reasons: List[str] = []
         verdict = "PASS"
         min_rate = float(self.cfg["min_new_kill_rate"])
-        if rate is not None and len(fresh) >= 4 and rate < min_rate:
+        if rate is not None and measured >= 4 and rate < min_rate:
             verdict = "REVIEW"
             reasons.append("New or edited code is thinly tested: only %d of %d planted bugs were caught (%.0f%%, floor %.0f%%)."
-                           % (new_killed, len(fresh), rate * 100, min_rate * 100))
+                           % (new_killed, measured, rate * 100, min_rate * 100))
         skipped = [n for n in notes if n["kind"] == "skip-added"]
         if skipped:
             verdict = "REVIEW"
@@ -574,7 +598,7 @@ class Engine:
         return {
             "verdict": verdict, "reasons": reasons, "lost": lost, "rehomed": rehomed,
             "verified": len(verify), "retained": retained, "untouched": untouched,
-            "new_code": {"functions": len(new_keys), "mutants": len(fresh), "killed": new_killed,
+            "new_code": {"functions": len(new_keys), "mutants": measured, "killed": new_killed,
                          "rate": rate, "survivors": survivors},
             "test_notes": notes, "removed_functions": removed_units, "seal": seal_state,
             "baseline": baseline_ref or LEDGER, "updated": updated,

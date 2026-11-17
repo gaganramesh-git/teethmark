@@ -1,0 +1,24 @@
+{
+  "name": "teethmark",
+  "description": "Proof that your tests did not get weaker.",
+  "owner": {
+    "name": "Gagan Ramesh",
+    "url": "https://github.com/gaganramesh-git"
+  },
+  "plugins": [
+    {
+      "name": "teethmark",
+      "description": "Proof that your tests did not get weaker. Re-plants the bugs your tests used to catch and blocks any change after which one slips through.",
+      "source": "./",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "mutation-testing",
+        "ai-agents",
+        "quality-gate",
+        "pytest"
+      ],
+      "skills": "skills/"
+    }
+  ]
+}

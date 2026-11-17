@@ -1,0 +1,37 @@
+{
+  "name": "teethmark",
+  "version": "0.2.0",
+  "description": "Proof that your tests did not get weaker. Re-plants the bugs your tests used to catch and blocks any change after which one slips through.",
+  "author": {
+    "name": "Gagan Ramesh",
+    "url": "https://github.com/gaganramesh-git"
+  },
+  "homepage": "https://github.com/gaganramesh-git/teethmark",
+  "repository": "https://github.com/gaganramesh-git/teethmark",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "mutation-testing",
+    "ai-agents",
+    "quality-gate",
+    "pytest"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Teethmark",
+    "shortDescription": "Proof that your tests did not get weaker",
+    "longDescription": "Records which planted bugs your tests catch, then re-plants them after any change and blocks if one now slips through.",
+    "developerName": "Gagan Ramesh",
+    "category": "Coding",
+    "capabilities": [
+      "Instructions"
+    ],
+    "websiteURL": "https://github.com/gaganramesh-git/teethmark",
+    "defaultPrompt": [
+      "Check that my tests did not get weaker.",
+      "What bugs do my tests miss?"
+    ],
+    "brandColor": "#b3261e",
+    "logo": "./assets/logo.svg"
+  }
+}

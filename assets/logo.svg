@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Teethmark">
+  <defs>
+    <mask id="bite">
+      <rect width="128" height="128" fill="#fff"/>
+      <circle cx="108" cy="22" r="20" fill="#000"/>
+      <circle cx="90" cy="12" r="11" fill="#000"/>
+      <circle cx="116" cy="44" r="11" fill="#000"/>
+    </mask>
+  </defs>
+  <rect x="10" y="10" width="108" height="108" rx="24" fill="#b3261e" mask="url(#bite)"/>
+  <path d="M36 68l20 20 38-46" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

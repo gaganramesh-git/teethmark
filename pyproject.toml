@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "teethmark"
-version = "0.1.0"
+version = "0.2.0"
 description = "Prove that a test suite did not get weaker: a ratchet over the bugs your tests used to catch."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -15,6 +15,13 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
   "Topic :: Software Development :: Testing",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
 ]
 dependencies = []
 
@@ -23,9 +30,12 @@ dev = ["pytest>=7"]
 
 [project.scripts]
 teethmark = "teethmark.cli:main"
+teethmark-mcp = "teethmark.mcp:main"
 
 [project.urls]
 Homepage = "https://github.com/gaganramesh-git/teethmark"
+Issues = "https://github.com/gaganramesh-git/teethmark/issues"
+Changelog = "https://github.com/gaganramesh-git/teethmark/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
 packages = ["teethmark"]

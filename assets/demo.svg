@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 689" width="860" role="img" aria-label="Teethmark demo: a weakened test is blocked with proof">
+<rect width="860" height="689" rx="12" fill="#14161a"/>
+<circle cx="24" cy="22" r="6" fill="#ff5f56"/><circle cx="44" cy="22" r="6" fill="#ffbd2e"/><circle cx="64" cy="22" r="6" fill="#27c93f"/>
+<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="14" fill="#d7dae0" xml:space="preserve">
+<text x="24" y="56" fill="#7aa2f7">== 1. Record which planted bugs the tests catch</text>
+<text x="24" y="77" fill="#d7dae0">Recorded 9 planted bugs across 3 functions: the tests caught 9 (100%), missed 0.</text>
+<text x="24" y="98" fill="#d7dae0"></text>
+<text x="24" y="119" fill="#7aa2f7">== 2. 'Fix' a failing build the lazy way: loosen two assertions</text>
+<text x="24" y="140" fill="#d7dae0">5 passed in 0.01s</text>
+<text x="24" y="161" fill="#d7dae0">   (tests still green, same number of tests, same coverage)</text>
+<text x="24" y="182" fill="#d7dae0"></text>
+<text x="24" y="203" fill="#7aa2f7">== 3. teethmark check</text>
+<text x="24" y="224" fill="#ff6b6b">BLOCK  The tests got weaker: 2 bug(s) they used to catch now slip through.</text>
+<text x="24" y="245" fill="#d7dae0"></text>
+<text x="24" y="266" fill="#ffd166">Proof 1 of 2   shop/cart.py:8   in line_total()</text>
+<text x="24" y="287" fill="#ff8f8f">    - total = total * 0.9</text>
+<text x="24" y="308" fill="#8fe388">    + total = (total / 0.9)</text>
+<text x="24" y="329" fill="#d7dae0">  Before: caught by tests/test_cart.py::test_bulk_discount_starts_at_ten</text>
+<text x="24" y="350" fill="#d7dae0">  Now:    that test still exists but now passes with the bug in place</text>
+<text x="24" y="371" fill="#d7dae0"></text>
+<text x="24" y="392" fill="#ffd166">Proof 2 of 2   shop/cart.py:7   in line_total()</text>
+<text x="24" y="413" fill="#ff8f8f">    - if qty &gt;= 10:</text>
+<text x="24" y="434" fill="#8fe388">    + if (qty &gt; 10):</text>
+<text x="24" y="455" fill="#d7dae0">  Before: caught by tests/test_cart.py::test_bulk_discount_starts_at_ten</text>
+<text x="24" y="476" fill="#d7dae0">  Now:    that test still exists but now passes with the bug in place</text>
+<text x="24" y="497" fill="#d7dae0"></text>
+<text x="24" y="518" fill="#d7dae0">To fix: put back the check that caught each bug, or add a test that fails on the '+' line.</text>
+<text x="24" y="539" fill="#d7dae0">Accepting weaker tests on purpose is a human decision: run `teethmark record`.</text>
+<text x="24" y="560" fill="#d7dae0"></text>
+<text x="24" y="581" fill="#d7dae0">Previously caught bugs re-tried: 9 (still caught: 7, lost: 2). Not affected by this change: 0.</text>
+<text x="24" y="602" fill="#d7dae0"></text>
+<text x="24" y="623" fill="#d7dae0">Compared against .teethmark/ledger.json in 0.7s.</text>
+<text x="24" y="644" fill="#d7dae0">exit code: 1</text>
+</g></svg>

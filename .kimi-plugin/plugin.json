@@ -1,0 +1,16 @@
+{
+  "name": "teethmark",
+  "description": "Proof that your tests did not get weaker. Re-plants the bugs your tests used to catch and blocks any change after which one slips through.",
+  "author": {
+    "name": "Gagan Ramesh",
+    "url": "https://github.com/gaganramesh-git"
+  },
+  "homepage": "https://github.com/gaganramesh-git/teethmark",
+  "license": "MIT",
+  "interface": {
+    "displayName": "Teethmark",
+    "shortDescription": "Proof that your tests did not get weaker"
+  },
+  "skills": "./skills/",
+  "systemPromptPath": "./AGENTS.md"
+}

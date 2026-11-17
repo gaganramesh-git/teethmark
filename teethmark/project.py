@@ -57,7 +57,7 @@ def scan(root: str, source: Sequence[str] = (), exclude: Sequence[str] = ()) -> 
     """
     proj = Project(root)
     exclude = list(exclude) + DEFAULT_EXCLUDE
-    prefixes = [p.strip("/") + "/" for p in source if p.strip("/")]
+    prefixes = [p.strip("/") for p in source if p.strip("/")]
     shared = hashlib.sha256()
     for parent, dirs, files in os.walk(root):
         dirs[:] = sorted(d for d in dirs if not _ignored_dir(parent, d))
@@ -79,7 +79,7 @@ def scan(root: str, source: Sequence[str] = (), exclude: Sequence[str] = ()) -> 
             elif test_side or rel in ROOT_CONFIG:
                 shared.update(rel.encode() + b"\0" + data + b"\0")
             elif is_py:
-                if prefixes and not any(rel.startswith(p) for p in prefixes):
+                if prefixes and not any(rel == p or rel.startswith(p + "/") for p in prefixes):
                     continue
                 if any(fnmatch.fnmatch(rel, pat) for pat in exclude):
                     continue
